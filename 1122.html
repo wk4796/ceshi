@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>客户旅程流程</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .stage {
+            width: 200px;
+            height: 100px;
+            background-color: #ffffff;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            margin: 10px;
+            text-align: center;
+            padding-top: 30px;
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+        }
+
+        .stage.dragging {
+            opacity: 0.5;
+        }
+
+        .stage input {
+            width: 100%;
+            border: none;
+            background: transparent;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: -5px;
+            cursor: pointer;
+        }
+
+        .stage input:focus {
+            outline: none;
+        }
+
+        .connector {
+            position: absolute;
+            top: 50%;
+            left: 100%;
+            width: 30px;
+            height: 2px;
+            background-color: #777;
+            cursor: pointer;
+            z-index: -1;
+        }
+
+        .canvas {
+            min-height: 300px;
+            position: relative;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="canvas" id="canvas">
+            <div class="stage" draggable="true" id="stage-1" data-stage="认知">
+                <input type="text" value="认知" />
+            </div>
+            <div class="stage" draggable="true" id="stage-2" data-stage="考虑">
+                <input type="text" value="考虑" />
+            </div>
+            <div class="stage" draggable="true" id="stage-3" data-stage="决策">
+                <input type="text" value="决策" />
+            </div>
+            <div class="stage" draggable="true" id="stage-4" data-stage="购买">
+                <input type="text" value="购买" />
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const stages = document.querySelectorAll('.stage');
+        const canvas = document.getElementById('canvas');
+
+        let draggingElement = null;
+
+        stages.forEach(stage => {
+            stage.addEventListener('dragstart', (e) => {
+                draggingElement = e.target;
+                draggingElement.classList.add('dragging');
+            });
+
+            stage.addEventListener('dragend', () => {
+                draggingElement.classList.remove('dragging');
+                draggingElement = null;
+            });
+
+            stage.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                const rect = canvas.getBoundingClientRect();
+                const yPos = e.clientY - rect.top;
+                const stageHeight = stage.offsetHeight;
+
+                if (yPos < stageHeight / 2) {
+                    stage.style.transform = 'translateY(-10px)';
+                } else {
+                    stage.style.transform = 'translateY(10px)';
+                }
+            });
+
+            stage.addEventListener('dragleave', () => {
+                stage.style.transform = 'translateY(0px)';
+            });
+
+            stage.addEventListener('drop', (e) => {
+                e.preventDefault();
+                stage.style.transform = 'translateY(0px)';
+                canvas.appendChild(draggingElement);
+            });
+        });
+
+        function createConnection(fromStage, toStage) {
+            const fromRect = fromStage.getBoundingClientRect();
+            const toRect = toStage.getBoundingClientRect();
+
+            const connector = document.createElement('div');
+            connector.classList.add('connector');
+            const left = fromRect.right;
+            const top = fromRect.top + fromRect.height / 2;
+            const height = toRect.top - fromRect.top;
+
+            connector.style.top = top + 'px';
+            connector.style.left = left + 'px';
+            connector.style.height = height + 'px';
+
+            canvas.appendChild(connector);
+        }
+
+        // 初始连接
+        createConnection(document.getElementById('stage-1'), document.getElementById('stage-2'));
+        createConnection(document.getElementById('stage-2'), document.getElementById('stage-3'));
+        createConnection(document.getElementById('stage-3'), document.getElementById('stage-4'));
+    </script>
+</body>
+</html>
